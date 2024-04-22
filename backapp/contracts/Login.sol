@@ -1,62 +1,55 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./Ownable.sol"; // Import Ownable contract for access control
+// Importing IPFS library for interaction
+import "ipfs://QmSj8M94tvDfUyUcVG76uRApMhMebTtojBdbU14w5pJ4kg";
 
-contract UserAuthentication is Ownable {
+contract LoginContract {
     struct User {
         string username;
-        bytes32 passwordHash; // Hashed password stored on IPFS
-        bool exists;
+        bytes32 hashedPassword;
     }
 
-    mapping(string => User) private users;
+    mapping(address => User) public users;
+    mapping(string => address) public usernameToAddress;
 
     event UserLoggedIn(address indexed userAddress, string username);
 
-    constructor() {
-        // Add default admin user during contract deployment
-        addUser("admin", "adminPassword");
+    modifier isValidString(string memory _str) {
+        require(bytes(_str).length > 0, "Empty string not allowed");
+        _;
     }
 
-    // Function to add a new user
-    function addUser(string memory _username, string memory _password) public onlyOwner {
-        bytes32 hashedPassword = hashPassword(_password); // Hash the password
-
-        require(!users[_username].exists, "User already exists");
-
-        users[_username] = User({
-            username: _username,
-            passwordHash: hashedPassword,
-            exists: true
-        });
+    modifier isRegisteredUser(address _userAddress) {
+        require(bytes(users[_userAddress].username).length > 0, "User not registered");
+        _;
     }
 
-    // Function to hash a password
-    function hashPassword(string memory password) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(password));
+    modifier isValidPassword(address _userAddress, string memory _password) {
+        bytes32 hashedPassword = users[_userAddress].hashedPassword;
+        require(keccak256(abi.encodePacked(_password)) == hashedPassword, "Invalid password");
+        _;
     }
 
-    // Function to authenticate user credentials
-    function authenticateUser(string memory _username, string memory _password)
-        public
-        view
-        returns (bool)
-    {
-        require(users[_username].exists, "User does not exist");
+    function registerUser(string memory _username, string memory _password) public isValidString(_username) isValidString(_password) {
+        require(usernameToAddress[_username] == address(0), "Username already exists");
 
-        bytes32 hashedPassword = hashPassword(_password);
-        require(users[_username].passwordHash == hashedPassword, "Invalid password");
-
-        return true; // Authentication successful
+        bytes32 hashedPassword = keccak256(abi.encodePacked(_password));
+        users[msg.sender] = User(_username, hashedPassword);
+        usernameToAddress[_username] = msg.sender;
     }
 
-    // Function to log in a user
-    function login(string memory _username, string memory _password) public returns (bool) {
-        require(authenticateUser(_username, _password), "Authentication failed");
+    function loginUser(string memory _username, string memory _password) public isValidString(_username) isValidString(_password) {
+        address userAddress = usernameToAddress[_username];
+        require(userAddress != address(0), "User not registered");
 
-        emit UserLoggedIn(msg.sender, _username);
+        emit UserLoggedIn(userAddress, _username);
+    }
 
-        return true; // Login successful
+    // Function to fetch user details from IPFS
+    function getUserDetailsFromIPFS(address _userAddress) public view isRegisteredUser(_userAddress) returns (string memory) {
+        User storage user = users[_userAddress];
+        string memory userDetails = string(abi.encodePacked("Username: ", user.username));
+        return IPFS.get(userDetails); // Assume IPFS.get is a function that fetches data from IPFS based on a given hash
     }
 }

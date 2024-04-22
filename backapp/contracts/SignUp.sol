@@ -1,94 +1,103 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./Ownable.sol"; // Import Ownable contract for access control
+// Importing IPFS library for interaction
+import "ipfs://QmSj8M94tvDfUyUcVG76uRApMhMebTtojBdbU14w5pJ4kg";
 
-contract UserManagement is Ownable {
+contract SignUpContract {
     struct User {
         string username;
-        uint256 dateOfBirth;
+        string dob;
         string gender;
         string email;
         string contact;
-        bytes32 passwordHash; // Hashed password
+        bytes32 hashedPassword;
     }
 
     mapping(address => User) public users;
-    address[] public userAddresses; // Array to store user addresses for iteration
+    mapping(string => bool) public usernames;
+    mapping(string => bool) public emails;
 
     event UserSignedUp(address indexed userAddress, string username, string email);
 
-    // Function to hash a password
-    function hashPassword(string memory password) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(password));
+    modifier isValidString(string memory _str) {
+        require(bytes(_str).length > 0, "Empty string not allowed");
+        _;
     }
 
-    // Function to signup a new user
+    modifier isUniqueUsername(string memory _username) {
+        require(!usernames[_username], "Username already exists");
+        _;
+    }
+
+    modifier isUniqueEmail(string memory _email) {
+        require(!emails[_email], "Email already exists");
+        _;
+    }
+
+    modifier isValidPassword(string memory _password) {
+        require(bytes(_password).length >= 8, "Password should be at least 8 characters long");
+        _;
+    }
+
+    modifier isPasswordMatch(bytes32 _hashedPassword, string memory _password) {
+        require(keccak256(abi.encodePacked(_password)) == _hashedPassword, "Invalid password");
+        _;
+    }
+
     function signUpUser(
         string memory _username,
-        uint256 _dateOfBirth,
+        string memory _dob,
         string memory _gender,
         string memory _email,
         string memory _contact,
-        string memory _password,
-        string memory _confirmPassword
-    ) public {
-        require(bytes(_username).length > 0, "Username cannot be empty");
-        require(_dateOfBirth > 0, "Invalid date of birth");
-        require(bytes(_email).length > 0, "Email cannot be empty");
-        require(bytes(_contact).length > 0, "Contact cannot be empty");
-        require(bytes(_password).length > 0, "Password cannot be empty");
-        require(
-            keccak256(abi.encodePacked(_password)) == keccak256(abi.encodePacked(_confirmPassword)),
-            "Passwords do not match"
-        );
-
-        bytes32 hashedPassword = hashPassword(_password); // Hash the password
-
-        require(users[msg.sender].dateOfBirth == 0, "User already signed up");
-
-        users[msg.sender] = User({
-            username: _username,
-            dateOfBirth: _dateOfBirth,
-            gender: _gender,
-            email: _email,
-            contact: _contact,
-            passwordHash: hashedPassword
-        });
-
-        userAddresses.push(msg.sender);
+        string memory _password
+    )
+        public
+        isValidString(_username)
+        isValidString(_dob)
+        isValidString(_gender)
+        isValidString(_email)
+        isValidString(_contact)
+        isValidPassword(_password)
+        isUniqueUsername(_username)
+        isUniqueEmail(_email)
+    {
+        bytes32 hashedPassword = keccak256(abi.encodePacked(_password));
+        users[msg.sender] = User(_username, _dob, _gender, _email, _contact, hashedPassword);
+        usernames[_username] = true;
+        emails[_email] = true;
 
         emit UserSignedUp(msg.sender, _username, _email);
     }
 
-    // Function to get user details by address
-    function getUserDetails(address userAddress)
+    function login(string memory _email, string memory _password)
         public
         view
-        returns (
-            string memory,
-            uint256,
-            string memory,
-            string memory,
-            string memory
-        )
+        returns (bool)
     {
-        User storage user = users[userAddress];
-        require(user.dateOfBirth > 0, "User does not exist");
-        return (user.username, user.dateOfBirth, user.gender, user.email, user.contact);
+        User storage user = users[msg.sender];
+        bytes32 hashedPassword = keccak256(abi.encodePacked(_password));
+        return (user.hashedPassword == hashedPassword);
     }
 
-    // Function to get all user addresses
-    function getAllUserAddresses() public view onlyOwner returns (address[] memory) {
-        return userAddresses;
+    function getUserDetails()
+        public
+        view
+        returns (string memory, string memory, string memory, string memory, string memory)
+    {
+        User storage user = users[msg.sender];
+        return (user.username, user.dob, user.gender, user.email, user.contact);
     }
 
     // Function to store user credentials on IPFS
-    function storeUserCredentialsOnIPFS(address userAddress, string memory credentialsHash) public onlyOwner {
-        // Include IPFS integration logic here
-        // For demonstration purposes, just emit the credentials hash
-        emit CredentialsStoredOnIPFS(userAddress, credentialsHash);
+    function storeUserCredentialsOnIPFS()
+        public
+        returns (string memory)
+    {
+        User storage user = users[msg.sender];
+        string memory userDetails = string(abi.encodePacked("Username: ", user.username, ", DOB: ", user.dob, ", Gender: ", user.gender, ", Email: ", user.email, ", Contact: ", user.contact));
+        string memory ipfsHash = IPFS.add(userDetails);
+        return ipfsHash;
     }
-
-    event CredentialsStoredOnIPFS(address indexed userAddress, string credentialsHash);
 }
