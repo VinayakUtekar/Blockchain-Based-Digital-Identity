@@ -83,6 +83,28 @@ button {
   color: #fff;
 }
 
+
+.landing-lang-icon{
+
+  position: absolute;
+  /* right: 3%; */
+  top: 13%;
+  top: 68%;
+  right: 2%;
+  transform: translate(-50%, -95%);
+  font-size: 20px;
+  color: #d5d5d5;
+  transition: 0.3s ease-out;
+}
+
+.landing-lang-icon:hover{
+  color: #fff;
+}
+
+
+
+
+
 .landing-seamless-security {
   display: flex;
   align-items: flex-start;

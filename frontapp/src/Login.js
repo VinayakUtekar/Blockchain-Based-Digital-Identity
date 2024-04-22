@@ -1,5 +1,7 @@
 import React from 'react';
 import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faGlobe } from '@fortawesome/free-solid-svg-icons'
 
 import './Login.css'; // Make sure to create a corresponding CSS file
 
@@ -23,6 +25,7 @@ const Login = () => {
           </Link>
         </div>
         <div className='login-lang-icon'>
+          <FontAwesomeIcon icon={faGlobe} />
         </div>
       </div>
 
@@ -56,7 +59,7 @@ const Login = () => {
       <div className='login-footer'>
         <div className='login-footer-links'>
           <a href='#' className='login-privacy-policy'>Privacy Policy</a>
-          <a href='#' className='login-terms-and-conditions'>Terms and conditions</a>
+          <Link to="/about#aboutpage-tc-section" className='createtoken-terms-and-conditions'>Terms and conditions</Link>
           <a href='#' className='login-contact-us'>Contact us</a>
         </div>
       </div>

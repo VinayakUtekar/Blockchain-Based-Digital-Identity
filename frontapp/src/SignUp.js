@@ -1,5 +1,8 @@
 import React from 'react';
 import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faGlobe } from '@fortawesome/free-solid-svg-icons'
+
 import './SignUp.css';
 
 const SignUp = () => {
@@ -20,6 +23,7 @@ const SignUp = () => {
           </Link>
         </div>
         <div className='signup-lang-icon'>
+          <FontAwesomeIcon icon={faGlobe} />
         </div>
       </div>
 
@@ -82,7 +86,7 @@ const SignUp = () => {
       <div className='signup-footer'>
         <div className='signup-footer-links'>
           <a href='#' className='signup-privacy-policy'>Privacy Policy</a>
-          <a href='#' className='signup-terms-and-conditions'>Terms and conditions</a>
+          <Link to="/about#aboutpage-tc-section" className='createtoken-terms-and-conditions'>Terms and conditions</Link>
           <a href='#' className='signup-contact-us'>Contact us</a>
         </div>
       </div>

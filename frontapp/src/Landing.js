@@ -1,5 +1,8 @@
 import React from 'react';
 import { Link } from "react-router-dom";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faGlobe } from '@fortawesome/free-solid-svg-icons'
+
 import './Landing.css';
 // import { faGlobe } from '@fortawesome/pro-solid-svg-icons';
 
@@ -23,7 +26,7 @@ export function Landing() {
           </Link>
         </div>
         <div className='landing-lang-icon'>
-          {/* <FontAwesomeIcon icon={faGlobe} /> */}
+          <FontAwesomeIcon icon={faGlobe} />
         </div>
       </div>
 
@@ -53,7 +56,7 @@ export function Landing() {
       <div className='landing-footer'>
         <div className='landing-footer-links'>
           <a href='#'className='landing-privacy-policy'>Privacy Policy</a>
-          <a href='#'className='landing-terms-and-conditions'>Terms and conditions</a>
+          <Link to="/about#aboutpage-tc-section" className='createtoken-terms-and-conditions'>Terms and conditions</Link>
           <a href='#'className='landing-contact-us'>Contact us</a>
         </div>
       </div>
